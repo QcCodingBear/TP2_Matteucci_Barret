@@ -7,6 +7,7 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\User;
 use App\Http\Controllers\Controller;
+use Laravel\Sanctum\Sanctum;
 
 class UserTest extends TestCase
 {
@@ -18,109 +19,125 @@ class UserTest extends TestCase
 
         public function test_user_can_register_with_valid_data() : void
     {
+        //prepare
         $this->seed();
 
-        $response = $this->postJson('/api/signup', [
-            'login' => 'testuser',
-            'password' => 'validpassword',
-            'email' => 'test@test.com',
-            'first_name' => 'Test',
-            'last_name' => 'User'
-        ]);
+        $json = User::factory()->make()->toArray();
+        $json['password'] = 'validpassword';
+
+        //act
+        $response = $this->postJson('/api/signup', $json);
+
+        //assert
         $response->assertStatus(CREATED)
                  ->assertJsonStructure(['message']);
+
         $this->assertDatabaseHas('users', [
-            'login' => 'testuser',
-            'email' => 'test@test.com'
+            'login' => $json['login'],
+            'email' => $json['email']
         ]);
     }
 
     public function test_user_registration_requires_valid_data() : void
     {
+        //prepare
         $this->seed();
 
-        $json = [
+        $json = User::factory()->make([
             'login' => '',
-            'password' => 'short',
             'email' => 'not-an-email',
             'first_name' => '',
             'last_name' => ''
-        ];
+        ])->toArray();
+        $json['password'] = '';
 
+        //act
         $response = $this->postJson('/api/signup', $json);
 
+        //assert
         $response->assertStatus(INVALID_DATA)
                  ->assertJsonValidationErrors(['login', 'password', 'email', 'first_name', 'last_name']);
     }
 
     public function test_password_must_be_at_least_8_characters() : void
     {
+        //prepare
         $this->seed();
 
-        $json = [
-            'login' => 'testuser2',
-            'password' => 'short',
-            'email' => 'test@test.com',
-            'first_name' => 'Test',
-            'last_name' => 'User'
-        ];
+        $json = User::factory()->make()->toArray();
+        $json['password'] = 'short';
 
+        //act
         $response = $this->postJson('/api/signup', $json);
 
+        //assert
         $response->assertStatus(INVALID_DATA)
                     ->assertJsonValidationErrors(['password']);
     }
 
     public function test_user_cannot_register_with_existing_login() : void
     {
+        //prepare
         $this->seed();
 
-        $user = User::create([
-            'login' => 'existinguser',
-            'password' => bcrypt('validpassword'),
-            'email' => 'test@test.com',
-            'first_name' => 'Existing',
-            'last_name' => 'User'
+        $user = User::factory()->create([
+            'login' => 'testuser'
         ]);
-
-        $json = [
+        $json = User::factory()->make([
             'login' => $user->login,
-            'password' => 'anotherpassword',
-            'email' => 'test2@test.com',
-            'first_name' => 'Test',
-            'last_name' => 'User'
-        ];
+        ])->toArray();
 
+        //act
         $response = $this->postJson('/api/signup', $json);
 
+        //assert
         $response->assertStatus(INVALID_DATA)
                     ->assertJsonValidationErrors(['login']);
     }
 
     public function test_user_cannot_register_with_existing_email() : void
     {
+        //prepare
         $this->seed();
 
-        $user = User::create([
-            'login' => 'testuser',
-            'password' => bcrypt('validpassword'),
-            'email' => 'test@test.com',
-            'first_name' => 'Existing',
-            'last_name' => 'User'
+        $user = User::factory()->create([
+            'email' => 'test@test.com'
         ]);
+        $json = User::factory()->make([
+            'email' => $user->email
+        ])->toArray();
 
-        $json = [
-            'login' => 'testuser2',
-            'password' => 'anotherpassword',
-            'email' => $user->email,
-            'first_name' => 'Test',
-            'last_name' => 'User'
-        ];
-
+        //act
         $response = $this->postJson('/api/signup', $json);
 
+        //assert
         $response->assertStatus(INVALID_DATA)
                     ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_user_cannot_register_when_already_authenticated() : void
+    {
+        //prepare
+        $this->seed();
+
+        $user = User::factory()->create([
+            'login' => 'newuser',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $json = User::factory()->make()->toArray();
+        $json['password'] = 'validpassword';
+
+        //act
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->postJson('/api/signup', $json);
+
+        //assert
+        $response->assertStatus(FORBIDDEN)
+                 ->assertJson(['message' => 'User already logged in']);
     }
 
     /////////////////////////////////////
@@ -134,22 +151,33 @@ class UserTest extends TestCase
 
     public function test_user_can_login_with_correct_credentials() : void
     {
+        //prepare
         $this->seed();
 
-        $user = User::create([
-            'login' => 'testuser',
-            'password' => bcrypt('validpassword'),
-            'email' => 'test@test.com',
-            'first_name' => 'Test',
-            'last_name' => 'User'
-        ]);
+        $json = User::factory()->make()->toArray();
+        $json['password'] = 'validpassword';
 
-        $json = [
-            'login' => 'testuser',
+        $signupResponse = $this->postJson('/api/signup', $json);
+        $signupResponse->assertStatus(CREATED);
+
+        $credentials = [
+            'login' => $json['login'],
             'password' => 'validpassword',
         ];
 
-        $response = $this->postJson('/api/signin', $json);
+        $user = User::where('login', $json['login'])->first();
+        $tokenCountBefore = $user->tokens()->count();
+
+        //act
+        $response = $this->postJson('/api/signin', $credentials);
+
+        //assert
+        //source: https://laravel.com/docs/master/http-tests#assert-authenticated-as
+        $this->assertAuthenticatedAs($user);
+
+        $tokenCountAfter = User::where('login', $json['login'])->first()->tokens()->count();
+
+        $this->assertEquals($tokenCountBefore + 1, $tokenCountAfter);
 
         $response->assertStatus(OK)
                  ->assertJsonStructure(['access_token', 'token_type']);
@@ -157,14 +185,12 @@ class UserTest extends TestCase
 
     public function test_user_cannot_login_with_incorrect_credentials() : void
     {
+        //prepare
         $this->seed();
 
-        $user = User::create([
+        $user = User::factory()->create([
             'login' => 'testuser',
             'password' => bcrypt('validpassword'),
-            'email' => 'test@test.com',
-            'first_name' => 'Test',
-            'last_name' => 'User'
         ]);
 
         $json = [
@@ -172,25 +198,54 @@ class UserTest extends TestCase
             'password' => 'wrongpassword',
         ];
 
+        //act
         $response = $this->postJson('/api/signin', $json);
 
+        //assert
         $response->assertStatus(UNAUTHORIZED)
                  ->assertJson(['message' => 'Authentication failed']);
     }
 
     public function test_login_requires_valid_data() : void
     {
+        //prepare
         $this->seed();
-
         $json = [
             'login' => '',
             'password' => ''
         ];
 
+        //act
         $response = $this->postJson('/api/signin', $json);
 
+        //assert
         $response->assertStatus(INVALID_DATA)
                  ->assertJsonValidationErrors(['login', 'password']);
+    }
+
+    public function test_user_cannot_login_when_already_authenticated() : void
+    {
+        //prepare
+        $this->seed();
+
+        $user = User::factory()->create([
+            'login' => 'testuser',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        $user->createToken('auth_token')->plainTextToken;
+
+        $json = [
+            'login' => 'testuser',
+            'password' => 'validpassword',
+        ];
+
+        //act
+        $response = $this->postJson('/api/signin', $json);
+
+        //assert
+        $response->assertStatus(FORBIDDEN)
+                 ->assertJson(['message' => 'User already logged in']);
     }
 
     /////////////////////////////////////
@@ -203,31 +258,44 @@ class UserTest extends TestCase
 
     public function test_authenticated_user_can_logout() : void
     {
+        //prepare
         $this->seed();
 
-        $user = User::create([
-            'login' => 'testuser',
-            'password' => bcrypt('validpassword'),
-            'email' => 'test@test.com',
-            'first_name' => 'Test',
-            'last_name' => 'User'
-        ]);
+        $json = User::factory()->make()->toArray();
+        $json['password'] = 'validpassword';
 
+        $this->postJson('/api/signup', $json)
+                          ->assertStatus(CREATED);
+
+        $user = User::where('email', $json['email'])->first();
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        //act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer ' . $token
         ])->postJson('/api/signout');
 
+        //assert
         $response->assertStatus(NO_CONTENT);
+
+        $this->assertDatabaseHas('users', [
+            'email' => $json['email'],
+        ]);
+
+        //Source: https://laravel.com/docs/master/eloquent#refreshing-models
+        $user->refresh();
+        $this->assertEquals(0, $user->tokens()->count());
     }
 
     public function test_unauthenticated_user_cannot_logout() : void
     {
+        //prepare
         $this->seed();
 
+        //act
         $response = $this->postJson('/api/signout');
 
+        //assert
         $response->assertStatus(UNAUTHORIZED);
     }
 
@@ -241,6 +309,7 @@ class UserTest extends TestCase
 
     public function test_throttling_on_auth_login_route() : void
     {
+        //prepare
         $this->seed();
 
         $json = [
@@ -250,47 +319,44 @@ class UserTest extends TestCase
 
         for ($i = 0; $i < 5; $i++) {
             $response = $this->postJson('/api/signin', $json);
-
             $response->assertStatus(UNAUTHORIZED);
         }
 
-        // 6em demande devrait être bloquée
+        //act
         $response = $this->postJson('/api/signin', $json);
 
+        //assert
         $response->assertStatus(TOO_MANY_REQUESTS);
     }
 
     public function test_throttling_on_auth_register_route() : void
     {
+        //prepare
         $this->seed();
 
         for ($i = 0; $i < 5; $i++) {
 
-        $json = [
-                'login' => "user$i",
-                'password' => 'validpassword',
-                'email' => "test$i@test.com",
-                'first_name' => 'User',
-                'last_name' => 'User'
-        ];
+            $json = User::factory()->make([
+                'login' => 'user' . $i,
+                'email' => 'test' . $i . '@test.com'
+            ])->toArray();
+
+            $json['password'] = 'validpassword';
 
             $response = $this->postJson('/api/signup', $json);
-
-            $response->assertStatus(CREATED);
         }
 
+        $json = User::factory()->make([
+            'login' => 'user' .($i + 1),
+            'email' => 'test' .($i + 1). '@test.com'
+        ])->toArray();
 
-        $json = [
-                'login' => 'user6',
-                'password' => 'validpassword',
-                'email' => 'test6@test.com',
-                'first_name' => 'User',
-                'last_name' => 'User'
-        ];
+        $json['password'] = 'validpassword';
 
-        // 6em demande devrait être bloquée
+        //act
         $response = $this->postJson('/api/signup', $json);
 
+        //assert
         $response->assertStatus(TOO_MANY_REQUESTS);
     }
 

@@ -63,6 +63,9 @@ class AuthController extends Controller
     {
         try
         {
+            if (auth('sanctum')->user()?->tokens()->count() > 0)
+                return response()->json(['message' => 'User already logged in'], FORBIDDEN);
+
             // Meme si pas demandé dans l'enoncé, il est préférable de rendre l'email unique comme pour le login.
             $request->validate([
                 'login' => 'required|string|unique:users,login',
@@ -157,17 +160,17 @@ class AuthController extends Controller
 
             $credentials = $request->only('login', 'password');
 
-            if (!auth()->attempt($credentials)) throw new AuthenticationException();
+            if (!auth()->attempt($credentials))
+                return response()->json(['message' => 'Authentication failed'], UNAUTHORIZED);
+
+            if ($request->user()->tokens()->count() > 0)
+                 return response()->json(['message' => 'User already logged in'], FORBIDDEN);
 
             $token = $this->generateToken(auth()->user());
 
             return response()->json([
                 'access_token' => $token,
                 'token_type' => 'Bearer'], OK);
-        }
-        catch (AuthenticationException $e)
-        {
-            return response()->json(['message' => 'Authentication failed'], UNAUTHORIZED);
         }
         catch (ValidationException $e)
         {
