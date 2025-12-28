@@ -25,6 +25,7 @@
                     "Authentication"
                 ],
                 "summary": "Register a new user",
+                "description": "Creates a new user account with the provided details. Throttling applied: max 5 attempts per minute.",
                 "operationId": "65b7ef1b1e076c033bf91055f53bd9a1",
                 "requestBody": {
                     "required": true,
@@ -77,9 +78,6 @@
                                             "type": "string",
                                             "example": "User created successfully"
                                         },
-                                        "access_token": {
-                                            "type": "string"
-                                        },
                                         "token_type": {
                                             "type": "string",
                                             "example": "Bearer"
@@ -120,6 +118,22 @@
                                 }
                             }
                         }
+                    },
+                    "429": {
+                        "description": "Too many requests",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Too many requests"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -130,6 +144,7 @@
                     "Authentication"
                 ],
                 "summary": "Authenticate a user and obtain an access token",
+                "description": "Authenticates a user using their login and password, returning an access token upon successful authentication. Throttling applied: max 5 attempts per minute.",
                 "operationId": "b5cee56757c3c79c5b5f115fdc33f460",
                 "requestBody": {
                     "required": true,
@@ -221,6 +236,22 @@
                                 }
                             }
                         }
+                    },
+                    "429": {
+                        "description": "Too many requests",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Too many requests"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -231,6 +262,7 @@
                     "Authentication"
                 ],
                 "summary": "Logout the authenticated user",
+                "description": "Logs out the currently authenticated user by revoking their access token. Requires a valid bearer token in the Authorization header.",
                 "operationId": "b46f8611fc7d1123f2a3d573cee661c4",
                 "responses": {
                     "204": {
@@ -245,6 +277,22 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Logout failed"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too many requests",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Too many requests"
                                         }
                                     },
                                     "type": "object"
@@ -266,7 +314,7 @@
             "bearerAuth": {
                 "type": "http",
                 "description": "Use a bearer token to access these endpoints",
-                "name": "Authorization",
+                "name": "Token",
                 "in": "header",
                 "bearerFormat": "Token",
                 "scheme": "bearer"

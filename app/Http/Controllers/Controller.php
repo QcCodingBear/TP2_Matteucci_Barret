@@ -41,12 +41,12 @@ use Illuminate\Routing\Controller as BaseController;
      *
      * @OA\SecurityScheme(
      *     type="http",
+     *     securityScheme="bearerAuth",
      *     description="Use a bearer token to access these endpoints",
-     *     name="Authorization",
+     *     name="Token",
      *     in="header",
      *     scheme="bearer",
-     *    bearerFormat="Token",
-     *    securityScheme="bearerAuth",
+     *    bearerFormat="Token"
      * )
      */
 

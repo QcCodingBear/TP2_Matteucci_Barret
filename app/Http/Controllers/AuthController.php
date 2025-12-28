@@ -16,6 +16,7 @@ class AuthController extends Controller
      *     path="/api/signup",
      *     tags={"Authentication"},
      *     summary="Register a new user",
+     *     description="Creates a new user account with the provided details. Throttling applied: max 5 attempts per minute.",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -32,7 +33,6 @@ class AuthController extends Controller
      *         description="User created successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="User created successfully"),
-     *             @OA\Property(property="access_token", type="string"),
      *             @OA\Property(property="token_type", type="string", example="Bearer")
      *         )
      *     ),
@@ -49,6 +49,13 @@ class AuthController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="User registration failed")
      *         )
+     *     ),
+     *    @OA\Response(
+     *         response=429,
+     *        description="Too many requests",
+     *        @OA\JsonContent(
+     *            @OA\Property(property="message", type="string", example="Too many requests")
+     *        )
      *     )
      * )
      */
@@ -56,7 +63,7 @@ class AuthController extends Controller
     {
         try
         {
-            // Meme si pas demandé dans l'enoncé, il est préférable d'avoir un seul email par utilisateur selon moi.
+            // Meme si pas demandé dans l'enoncé, il est préférable de rendre l'email unique comme pour le login.
             $request->validate([
                 'login' => 'required|string|unique:users,login',
                 'password' => 'required|string|min:8',
@@ -73,14 +80,8 @@ class AuthController extends Controller
                 'last_name' => $request->last_name,
             ]);
 
-            // Je préfére l'approche consistant à connecter directement l'utilisateur après son inscription.
-            $token = $this->generateToken($user);
-
             return response()->json([
-                'message' => 'User created successfully',
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-
+                'message' => 'User created successfully'
             ], CREATED);
         }
         catch (ValidationException $e)
@@ -98,6 +99,7 @@ class AuthController extends Controller
      *     path="/api/signin",
      *     tags={"Authentication"},
      *     summary="Authenticate a user and obtain an access token",
+     *    description="Authenticates a user using their login and password, returning an access token upon successful authentication. Throttling applied: max 5 attempts per minute.",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -134,6 +136,13 @@ class AuthController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Login failed")
      *         )
+     *     ),
+     *    @OA\Response(
+     *         response=429,
+     *        description="Too many requests",
+     *       @OA\JsonContent(
+     *           @OA\Property(property="message", type="string", example="Too many requests")
+     *       )
      *     )
      * )
     */
@@ -176,6 +185,7 @@ class AuthController extends Controller
      *     tags={"Authentication"},
      *     summary="Logout the authenticated user",
      *     security={{"bearerAuth": {}}},
+     *    description="Logs out the currently authenticated user by revoking their access token. Requires a valid bearer token in the Authorization header.",
      *     @OA\Response(
      *         response=204,
      *         description="Logged out successfully"
@@ -186,7 +196,14 @@ class AuthController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Logout failed")
      *         )
-     *     )
+     *     ),
+     *    @OA\Response(
+     *        response=429,
+     *       description="Too many requests",
+     *       @OA\JsonContent(
+     *          @OA\Property(property="message", type="string", example="Too many requests")
+     *      )
+     *    )
      * )
     */
     public function logout(Request $request)

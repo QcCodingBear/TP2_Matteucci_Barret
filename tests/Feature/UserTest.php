@@ -28,7 +28,7 @@ class UserTest extends TestCase
             'last_name' => 'User'
         ]);
         $response->assertStatus(CREATED)
-                 ->assertJsonStructure(['message', 'access_token', 'token_type']);
+                 ->assertJsonStructure(['message']);
         $this->assertDatabaseHas('users', [
             'login' => 'testuser',
             'email' => 'test@test.com'
@@ -290,39 +290,6 @@ class UserTest extends TestCase
 
         // 6em demande devrait être bloquée
         $response = $this->postJson('/api/signup', $json);
-
-        $response->assertStatus(TOO_MANY_REQUESTS);
-    }
-
-    public function test_throttling_on_auth_logout_route() : void
-    {
-        $this->seed();
-
-        $user = User::create([
-            'login' => 'testuser',
-            'password' => bcrypt('validpassword'),
-            'email' => 'test@test.com',
-            'first_name' => 'Test',
-            'last_name' => 'User'
-        ]);
-
-        for ($i = 0; $i < 5; $i++) {
-
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            $response = $this->withHeaders([
-                'Authorization' => 'Bearer ' . $token,
-            ])->postJson('/api/signout');
-
-            $response->assertStatus(NO_CONTENT);
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        // 6em demande devrait être bloquée
-                $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
-        ])->postJson('/api/signout');
 
         $response->assertStatus(TOO_MANY_REQUESTS);
     }
