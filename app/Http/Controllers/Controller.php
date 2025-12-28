@@ -11,8 +11,10 @@ use Illuminate\Routing\Controller as BaseController;
 define('OK', 200);
 define('CREATED', 201);
 define('NO_CONTENT', 204);
+define('UNAUTHORIZED', 401);
 define('NOT_FOUND', 404);
 define('INVALID_DATA', 422);
+define('TOO_MANY_REQUESTS', 429);
 define('SERVER_ERROR', 500);
 
 //Pagination

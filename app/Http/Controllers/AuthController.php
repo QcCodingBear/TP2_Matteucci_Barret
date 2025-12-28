@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Http\Controllers\Controller;
+use Illuminate\Auth\AuthenticationException;
 
 class AuthController extends Controller
 {
@@ -37,15 +39,15 @@ class AuthController extends Controller
                 'message' => 'User created successfully',
                 'access_token' => $token,
                 'token_type' => 'Bearer'
-            ], 201);
+            ], CREATED);
         }
         catch (ValidationException $e)
         {
-            return response()->json(['errors' => $e->errors()], 422);
+            return response()->json(['errors' => $e->errors()], INVALID_DATA);
         }
         catch (Exception $e)
         {
-            return response()->json(['message' => 'User registration failed'], 500);
+            return response()->json(['message' => 'User registration failed'], SERVER_ERROR);
         }
     }
 
@@ -67,19 +69,19 @@ class AuthController extends Controller
 
             return response()->json([
                 'access_token' => $token,
-                'token_type' => 'Bearer']);
+                'token_type' => 'Bearer'], OK);
         }
         catch (AuthenticationException $e)
         {
-            return response()->json(['message' => 'Authentication failed'], 401);
+            return response()->json(['message' => 'Authentication failed'], UNAUTHORIZED);
         }
         catch (ValidationException $e)
         {
-            return response()->json(['errors' => $e->errors()], 422);
+            return response()->json(['errors' => $e->errors()], INVALID_DATA);
         }
         catch (Exception $e)
         {
-            return response()->json(['message' => 'Login failed'], 500);
+            return response()->json(['message' => 'Login failed'], SERVER_ERROR);
         }
     }
 
@@ -89,11 +91,11 @@ class AuthController extends Controller
         {
             $request->user()->currentAccessToken()->delete();
 
-            return response()->json(['message' => 'Logged out successfully']);
+            return response()->json(['message' => 'Logged out successfully'], NO_CONTENT);
         }
         catch (Exception $e)
         {
-            return response()->json(['message' => 'Logout failed'], 500);
+            return response()->json(['message' => 'Logout failed'], SERVER_ERROR);
         }
     }
 
