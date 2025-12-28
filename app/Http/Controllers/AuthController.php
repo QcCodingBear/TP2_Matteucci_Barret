@@ -11,6 +11,47 @@ use Illuminate\Auth\AuthenticationException;
 
 class AuthController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/api/signup",
+     *     tags={"Authentication"},
+     *     summary="Register a new user",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"login","password","email","first_name","last_name"},
+     *             @OA\Property(property="login", type="string", example="newuser"),
+     *             @OA\Property(property="password", type="string", example="securepassword"),
+     *             @OA\Property(property="email", type="string", format="email", example="test@test.com"),
+     *             @OA\Property(property="first_name", type="string", example="John"),
+     *             @OA\Property(property="last_name", type="string", example="Snow")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="User created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="User created successfully"),
+     *             @OA\Property(property="access_token", type="string"),
+     *             @OA\Property(property="token_type", type="string", example="Bearer")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Invalid input data",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="User registration failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="User registration failed")
+     *         )
+     *     )
+     * )
+     */
     public function register(Request $request)
     {
         try
@@ -38,7 +79,8 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'User created successfully',
                 'access_token' => $token,
-                'token_type' => 'Bearer'
+                'token_type' => 'Bearer',
+
             ], CREATED);
         }
         catch (ValidationException $e)
@@ -51,7 +93,50 @@ class AuthController extends Controller
         }
     }
 
-
+    /**
+     * @OA\Post(
+     *     path="/api/signin",
+     *     tags={"Authentication"},
+     *     summary="Authenticate a user and obtain an access token",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"login","password"},
+     *             @OA\Property(property="login", type="string", example="existinguser"),
+     *             @OA\Property(property="password", type="string", example="securepassword")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Authentication successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="access_token", type="string"),
+     *             @OA\Property(property="token_type", type="string", example="Bearer")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Authentication failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Authentication failed")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Invalid input data",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Login failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Login failed")
+     *         )
+     *     )
+     * )
+    */
     public function login(Request $request)
     {
         try
@@ -85,6 +170,25 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/signout",
+     *     tags={"Authentication"},
+     *     summary="Logout the authenticated user",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Response(
+     *         response=204,
+     *         description="Logged out successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Logout failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Logout failed")
+     *         )
+     *     )
+     * )
+    */
     public function logout(Request $request)
     {
         try
