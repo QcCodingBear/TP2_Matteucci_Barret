@@ -15,11 +15,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->call([            
+        $this->call([
             LanguageSeeder::class,
             FilmSeeder::class,
             ActorSeeder::class,
-            FilmActorSeeder::class
+            FilmActorSeeder::class,
+            RoleSeeder::class
         ]);
 
 		//Ne sera pas fait dans le cadre de ce TP, les users et les critiques seront créés par vous

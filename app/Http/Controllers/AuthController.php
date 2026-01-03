@@ -72,7 +72,7 @@ class AuthController extends Controller
                 'password' => 'required|string|min:8',
                 'email' => 'required|string|email|unique:users,email',
                 'first_name' => 'required|string',
-                'last_name' => 'required|string',
+                'last_name' => 'required|string'
             ]);
 
             $user = User::create([
@@ -81,6 +81,7 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
+                'role_id' => 2 // Par défaut, le rôle 'User' a l'ID 2 (User, pas Admin)
             ]);
 
             return response()->json([
