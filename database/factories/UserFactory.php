@@ -31,6 +31,7 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'first_name' => $this->faker->firstName(),
             'last_name' => $this->faker->lastName(),
+            'role_id' => 2, // Par défaut, le rôle 'User' a l'ID 2 (User, pas Admin)
         ];
     }
 
