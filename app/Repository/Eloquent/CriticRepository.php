@@ -15,7 +15,7 @@ class CriticRepository extends BaseRepository implements CriticRepositoryInterfa
 
     public function getByUserId($userId)
     {
-        $critic = $this->model->where('user_id', $userId)->first();
+        $critic = $this->model->where('user_id', $userId)->get();
 
         if (!$critic) {
             throw new ModelNotFoundException("Critic with user ID {$userId} not found.");
@@ -26,12 +26,19 @@ class CriticRepository extends BaseRepository implements CriticRepositoryInterfa
 
     public function getByFilmId($filmId)
     {
-        $critic = $this->model->where('film_id', $filmId)->first();
+        $critic = $this->model->where('film_id', $filmId)->get();
 
         if (!$critic) {
             throw new ModelNotFoundException("Critic with film ID {$filmId} not found.");
         }
 
         return $critic;
+    }
+
+    public function userHasCriticForFilm($userId, $filmId)
+    {
+        return $this->model->where('user_id', $userId)
+                           ->where('film_id', $filmId)
+                           ->exists();
     }
 }
