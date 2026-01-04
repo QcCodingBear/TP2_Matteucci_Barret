@@ -18,7 +18,7 @@ class FilmController extends Controller
         $this->filmRepository = $filmRepository;
     }
 
-    public function create(Request $request)
+    public function store(Request $request)
     {
         try {
             $validatedData = $request->validate([
@@ -29,7 +29,7 @@ class FilmController extends Controller
                 'rating' => 'nullable|string|max:10',
                 'language_id' => 'required|integer|exists:languages,id',
                 'special_features' => 'required|string',
-                'image' => 'required|string|max:255',
+                'image' => 'nullable|string|max:255',
             ]);
 
             $film = $this->filmRepository->create($validatedData);
@@ -51,6 +51,13 @@ class FilmController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $film = $this->filmRepository->getById($id);
+            if (!$film) {
+                return response()->json([
+                    'message' => 'Film not found',
+                ], NOT_FOUND);
+            }
+
             $validatedData = $request->validate([
                 'title' => 'sometimes|required|string|max:255',
                 'release_year' => 'sometimes|required|integer',
@@ -74,6 +81,27 @@ class FilmController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Film update failed',
+            ], SERVER_ERROR);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $film = $this->filmRepository->getById($id);
+            if (!$film) {
+                return response()->json([
+                    'message' => 'Film not found',
+                ], NOT_FOUND);
+            }
+            $this->filmRepository->delete($id);
+
+            return response()->json([
+                'message' => 'Film deleted successfully',
+            ], OK);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Film deletion failed',
             ], SERVER_ERROR);
         }
     }

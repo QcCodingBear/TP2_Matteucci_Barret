@@ -19,7 +19,7 @@ class CreateCriticsTable extends Migration
             $table->decimal('score', 5, 2);
             $table->text('comment');
             $table->foreignId('user_id')->constrained();
-            $table->foreignId('film_id')->constrained();            
+            $table->foreignId('film_id')->constrained()->cascadeOnDelete();
         });
     }
 

@@ -26,10 +26,10 @@ Route::middleware('auth:sanctum', 'throttle:60,1')->group(function () {
 
     Route::middleware(CheckIfAdmin::class)->group(function () {
 
-        Route::post('/films', 'App\Http\Controllers\FilmController@create');
+        Route::post('/films', 'App\Http\Controllers\FilmController@store');
 
         Route::put('/films/{id}', 'App\Http\Controllers\FilmController@update');
 
-        Route::delete('/films/{id}', 'App\Http\Controllers\FilmController@delete');
+        Route::delete('/films/{id}', 'App\Http\Controllers\FilmController@destroy');
     });
 });
