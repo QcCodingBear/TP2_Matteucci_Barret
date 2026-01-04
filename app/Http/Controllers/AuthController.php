@@ -8,9 +8,17 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\AuthenticationException;
+use App\Repository\UserRepositoryInterface;
 
 class AuthController extends Controller
 {
+    private UserRepositoryInterface $userRepository;
+
+    public function __construct(UserRepositoryInterface $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
     /**
      * @OA\Post(
      *     path="/api/signup",
@@ -75,7 +83,7 @@ class AuthController extends Controller
                 'last_name' => 'required|string'
             ]);
 
-            $user = User::create([
+            $user = $this->userRepository->create([
                 'login' => $request->login,
                 'password' => bcrypt($request->password),
                 'email' => $request->email,
