@@ -28,6 +28,8 @@ class FilmController extends Controller
                 'description' => 'nullable|string',
                 'rating' => 'nullable|string|max:10',
                 'language_id' => 'required|integer|exists:languages,id',
+                'special_features' => 'required|string',
+                'image' => 'required|string|max:255',
             ]);
 
             $film = $this->filmRepository->create($validatedData);
@@ -56,6 +58,8 @@ class FilmController extends Controller
                 'description' => 'sometimes|nullable|string',
                 'rating' => 'sometimes|nullable|string|max:10',
                 'language_id' => 'sometimes|required|integer|exists:languages,id',
+                'special_features' => 'sometimes|nullable|string',
+                'image' => 'sometimes|nullable|string|max:255',
             ]);
 
             $film = $this->filmRepository->update($id, $validatedData);
