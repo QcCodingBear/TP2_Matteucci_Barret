@@ -5,6 +5,7 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Http\Controllers\Controller;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
@@ -31,7 +32,7 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'first_name' => $this->faker->firstName(),
             'last_name' => $this->faker->lastName(),
-            'role_id' => 2, // Par défaut, le rôle 'User' a l'ID 2 (User, pas Admin)
+            'role_id' => USER, // Par défaut, le rôle 'User' a l'ID 2 (User, pas Admin)
         ];
     }
 
