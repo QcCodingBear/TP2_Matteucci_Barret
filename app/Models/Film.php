@@ -11,7 +11,7 @@ class Film extends Model
 
     protected $fillable =
     [
-        'title', 
+        'title',
         'release_year',
         'length',
         'description',
@@ -30,7 +30,7 @@ class Film extends Model
     {
         return $this->hasMany('App\Models\Critic');
     }
-    
+
     public function actors()
     {
         return $this->belongsToMany('App\Models\Actor');

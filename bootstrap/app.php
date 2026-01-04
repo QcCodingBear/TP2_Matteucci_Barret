@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->appened(CheckIfAdmin::class); // source: https://laravel.com/docs/master/middleware#global-middleware
+        //
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
