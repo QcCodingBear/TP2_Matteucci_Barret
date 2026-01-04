@@ -24,4 +24,26 @@ class ActorRepository extends BaseRepository implements ActorRepositoryInterface
 
         return $actor;
     }
+
+    public function getByLastName($lastName)
+    {
+        $actor = $this->model->where('last_name', $lastName)->first();
+
+        if (!$actor) {
+            throw new ModelNotFoundException("Actor with last name {$lastName} not found.");
+        }
+
+        return $actor;
+    }
+
+    public function getByBirthDate($birthDate)
+    {
+        $actor = $this->model->where('birth_date', $birthDate)->first();
+
+        if (!$actor) {
+            throw new ModelNotFoundException("Actor with birth date {$birthDate} not found.");
+        }
+
+        return $actor;
+    }
 }
