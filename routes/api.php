@@ -21,4 +21,5 @@ Route::middleware('auth:sanctum', 'throttle:60,1')->group(function () {
     Route::post('/signout', 'App\Http\Controllers\AuthController@logout');
     Route::post('/critics', 'App\Http\Controllers\CriticController@store');
     Route::get('/users/{id}', 'App\Http\Controllers\UserController@getById');
+    Route::patch('/users/{id}/password', 'App\Http\Controllers\UserController@updatePassword');
 });

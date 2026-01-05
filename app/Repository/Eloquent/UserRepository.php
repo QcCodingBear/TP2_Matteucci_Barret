@@ -56,5 +56,13 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
 
         return $user;
     }
+
+    public function updatePassword($id, $newPassword)
+    {
+        $user = $this->model->findOrFail($id);
+        $user->password = bcrypt($newPassword);
+        $user->save();
+        return $user;
+    }
 }
 

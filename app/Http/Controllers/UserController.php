@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Repository\UserRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
+use App\Http\Requests\UpdatePasswordRequest;
 
 class UserController extends Controller
 {
@@ -49,6 +50,35 @@ class UserController extends Controller
         {
             return response()->json([
                 'message' => 'An error occurred while retrieving the user.',
+                'error' => $e->getMessage()], SERVER_ERROR);
+        }
+    }
+
+    public function updatePassword(UpdatePasswordRequest $request, $id)
+    {
+        try 
+        {
+
+            if (auth()->user()->id != $id) {
+            return response()->json([
+                'message' => 'You can only update your own password.'], FORBIDDEN);
+        }
+            $validatedData = $request->validated();
+            $newPassword = $validatedData['password'];
+
+            $this->userRepository->updatePassword($id, $newPassword);
+
+            return response()->json(['message' => 'Password updated successfully.'], OK);
+        } 
+        catch (ModelNotFoundException $e) 
+        {
+            return response()->json([
+                'message' => 'User not found.'], NOT_FOUND);
+        } 
+        catch (Exception $e) 
+        {
+            return response()->json([
+                'message' => 'An error occurred while updating the password.',
                 'error' => $e->getMessage()], SERVER_ERROR);
         }
     }

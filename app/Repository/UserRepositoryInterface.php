@@ -8,4 +8,5 @@ interface UserRepositoryInterface extends RepositoryInterface
     public function getByLogin($login);
     public function getByLastName($lastName);
     public function getByFirstName($firstName);
+    public function updatePassword($id, $newPassword);
 }
