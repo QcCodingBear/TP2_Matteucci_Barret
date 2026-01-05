@@ -34,17 +34,21 @@ class FilmController extends Controller
 
             $film = $this->filmRepository->create($validatedData);
 
-            return (new FilmResource($film))->response()
-                ->setStatusCode(CREATED);
+            return response()->json([
+                'message' => 'Film created successfully',
+                'film' => new FilmResource($film)
+            ], CREATED);
         }
-        catch (ValidationException $e) {
+        catch (ValidationException $e)
+        {
             return response()->json([
-                'invalid data' => $e->errors(),
-            ], INVALID_DATA);
-        } catch (Exception $e) {
-            return response()->json([
-                'message' => 'Film creation failed',
-            ], SERVER_ERROR);
+                'errors' => $e->errors(),
+                'message' => 'Invalid data'],
+                INVALID_DATA);
+        }
+        catch (Exception $e) {
+
+            return response()->json(['message' => 'Film creation failed',], SERVER_ERROR);
         }
     }
 
