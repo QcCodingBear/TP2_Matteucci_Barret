@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Models\Language;
 use Illuminate\Support\Facades\Validator;
 use App\Repository\UserRepositoryInterface;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Exception;
 
 class UserController extends Controller
 {
@@ -23,5 +25,31 @@ class UserController extends Controller
     {
         $user = $this->userRepository->getByEmail($email);
         return new UserResource($user);
+    }
+
+    public function getById($id)
+    {
+        try 
+        {
+            if(auth()->user()->id != $id)
+            {
+                return response()->json(['message' => 'You can only view your own informations.'], FORBIDDEN);
+            }
+
+            $user = $this->userRepository->getById($id);
+
+            return response()->json(['data' => new UserResource($user)], OK);
+        }
+        catch (ModelNotFoundException $e) 
+        {
+            return response()->json([
+                'message' => 'User not found.'], NOT_FOUND);
+        } 
+        catch (Exception $e) 
+        {
+            return response()->json([
+                'message' => 'An error occurred while retrieving the user.',
+                'error' => $e->getMessage()], SERVER_ERROR);
+        }
     }
 }
