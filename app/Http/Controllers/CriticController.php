@@ -6,18 +6,16 @@ use Illuminate\Http\Request;
 use App\Models\Critic;
 use App\Http\Resources\CriticResource;
 use App\Repository\CriticRepositoryInterface;
-use App\Repository\FilmRepositoryInterface;
 use App\Http\Requests\StoreCriticRequest;
+use Exception;
 
 class CriticController extends Controller
 {
    private CriticRepositoryInterface $criticRepository;
-   private FilmRepositoryInterface $filmRepository;
 
-    public function __construct(CriticRepositoryInterface $criticRepository, FilmRepositoryInterface $filmRepository)
+    public function __construct(CriticRepositoryInterface $criticRepository)
     {
          $this->criticRepository = $criticRepository;
-         $this->filmRepository = $filmRepository;
     }
 
     public function getById($id)
@@ -52,12 +50,11 @@ class CriticController extends Controller
         return response()->json(['data' => new CriticResource($critic)], CREATED);
         }
 
-        catch (\Exception $e) 
+        catch (Exception $e) 
         {
             return response()->json([
                 'message' => 'An error occurred while creating the critic.',
-                'error' => $e->getMessage()
-            ], SERVER_ERROR);
+                'error' => $e->getMessage()], SERVER_ERROR);
         }
     }
 }
