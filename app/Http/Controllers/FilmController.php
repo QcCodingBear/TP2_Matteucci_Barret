@@ -75,13 +75,16 @@ class FilmController extends Controller
 
             $film = $this->filmRepository->update($id, $validatedData);
 
-            return (new FilmResource($film))->response()
-                ->setStatusCode(OK);
+            return response()->json([
+                'message' => 'Film updated successfully',
+                'film' => new FilmResource($film)
+            ], OK);
         }
         catch (ValidationException $e) {
             return response()->json([
-                'invalid data' => $e->errors(),
-            ], INVALID_DATA);
+                'errors' => $e->errors(),
+                'message' => 'Invalid data'],
+                INVALID_DATA);
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Film update failed',
