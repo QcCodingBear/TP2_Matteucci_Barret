@@ -27,7 +27,6 @@ class RegisterAuthRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Meme si pas demandé dans l'enoncé, il est préférable de rendre l'email unique comme pour le login.
         return [
             'login' => 'required|string|unique:users,login',
             'password' => 'required|string|min:8',

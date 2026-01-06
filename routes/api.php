@@ -11,7 +11,6 @@ Route::get('/user', function (Request $request) {
 //Routes du TP2 ici :
 Route::get('/films', 'App\Http\Controllers\FilmController@index');
 
-// J'applique ici le throttling à toutes les routes (5 tentatives par minute)
 Route::middleware('throttle:5,1')->group(function () {
 
     Route::post('/signup', 'App\Http\Controllers\AuthController@register');
@@ -19,7 +18,6 @@ Route::middleware('throttle:5,1')->group(function () {
     Route::post('/signin', 'App\Http\Controllers\AuthController@login');
 });
 
-// J'applique ici le throttling à toutes les routes (60 tentatives par minute)
 Route::middleware('throttle:60,1', 'auth:sanctum')->group(function () {
 
     Route::post('/signout', 'App\Http\Controllers\AuthController@logout');

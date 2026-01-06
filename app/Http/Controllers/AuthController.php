@@ -86,7 +86,7 @@ class AuthController extends Controller
         {
             $validatedData = $request->validated();
             $validatedData['password'] = bcrypt($validatedData['password']);
-            $validatedData['role_id'] = USER; // Par défaut, le rôle 'User' a l'ID 2 (User)
+            $validatedData['role_id'] = USER; // Role user par défaut.
 
             $user = $this->userRepository->create($validatedData);
 
