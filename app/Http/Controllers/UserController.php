@@ -30,23 +30,23 @@ class UserController extends Controller
 
     public function getById($id)
     {
-        try 
+        try
         {
+            $user = $this->userRepository->getById($id);
+
             if(auth()->user()->id != $id)
             {
                 return response()->json(['message' => 'You can only view your own informations.'], FORBIDDEN);
             }
 
-            $user = $this->userRepository->getById($id);
-
             return response()->json(['data' => new UserResource($user)], OK);
         }
-        catch (ModelNotFoundException $e) 
+        catch (ModelNotFoundException $e)
         {
             return response()->json([
                 'message' => 'User not found.'], NOT_FOUND);
-        } 
-        catch (Exception $e) 
+        }
+        catch (Exception $e)
         {
             return response()->json([
                 'message' => 'An error occurred while retrieving the user.',
@@ -56,26 +56,29 @@ class UserController extends Controller
 
     public function updatePassword(UpdatePasswordRequest $request, $id)
     {
-        try 
+        try
         {
+            $this->userRepository->getById($id);
 
             if (auth()->user()->id != $id) {
             return response()->json([
                 'message' => 'You can only update your own password.'], FORBIDDEN);
-        }
+            }
+
             $validatedData = $request->validated();
+
             $newPassword = $validatedData['password'];
 
             $this->userRepository->updatePassword($id, $newPassword);
 
             return response()->json(['message' => 'Password updated successfully.'], OK);
-        } 
-        catch (ModelNotFoundException $e) 
+        }
+        catch (ModelNotFoundException $e)
         {
             return response()->json([
                 'message' => 'User not found.'], NOT_FOUND);
-        } 
-        catch (Exception $e) 
+        }
+        catch (Exception $e)
         {
             return response()->json([
                 'message' => 'An error occurred while updating the password.',

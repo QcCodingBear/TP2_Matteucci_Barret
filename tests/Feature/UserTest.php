@@ -304,7 +304,7 @@ class UserTest extends TestCase
     ////////////////////////////////////
 
     /////////////////////////////////////
-    //Début Tests de throttling
+    //Début Tests de throttling sur les routes de AuthController
     ////////////////////////////////////
 
     public function test_throttling_on_auth_login_route() : void
@@ -361,6 +361,346 @@ class UserTest extends TestCase
     }
 
     /////////////////////////////////////
-    //Fin Tests de throttling
+    //Fin Tests de throttling sur les routes de AuthController
     ////////////////////////////////////
+
+    /////////////////////////////////////
+    //Début Tests de getById
+    ////////////////////////////////////
+
+    public function test_user_can_get_own_information_by_id() : void
+    {
+        //prepare
+        $this->seed();
+
+        $user = User::factory()->create([
+            'login' => 'testuser',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        Sanctum::actingAs($user, [], 'sanctum');
+
+        //act
+        $response = $this->getJson('/api/users/' . $user->id);
+
+        //assert
+        $response->assertStatus(OK)
+                 ->assertJsonStructure(['data' => ['id', 'login', 'email', 'first_name', 'last_name', 'role_id']]);
+    }
+
+    public function test_user_cannot_get_other_user_information_by_id() : void
+    {
+        //prepare
+        $this->seed();
+
+        $user1 = User::factory()->create([
+            'login' => 'user1',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        $user2 = User::factory()->create([
+            'login' => 'user2',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        Sanctum::actingAs($user1, [], 'sanctum');
+
+        //act
+        $response = $this->getJson('/api/users/' . $user2->id);
+
+        //assert
+        $response->assertStatus(FORBIDDEN)
+                 ->assertJson(['message' => 'You can only view your own informations.']);
+    }
+
+    public function test_getting_nonexistent_user_by_id_returns_not_found() : void
+    {
+        //prepare
+        $this->seed();
+
+        $user = User::factory()->create([
+            'login' => 'testuser',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        Sanctum::actingAs($user, [], 'sanctum');
+
+        $nonExistentUserId = "not-an-id";
+
+        //act
+        $response = $this->getJson('/api/users/' . $nonExistentUserId);
+
+        //assert
+        $response->assertStatus(NOT_FOUND)
+                 ->assertJson(['message' => 'User not found.']);
+    }
+
+    public function test_unauthenticated_user_cannot_get_user_by_id() : void
+    {
+        //prepare
+        $this->seed();
+
+        $user = User::factory()->create([
+            'login' => 'testuser',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        //act
+        $response = $this->getJson('/api/users/' . $user->id);
+
+        //assert
+        $response->assertStatus(UNAUTHORIZED);
+    }
+
+    /////////////////////////////////////
+    //Fin Tests de getById
+    ////////////////////////////////////
+
+    /////////////////////////////////////
+    //Début Tests de updatePassword
+    ////////////////////////////////////
+
+    public function test_user_can_update_own_password() : void
+    {
+        //prepare
+        $this->seed();
+
+        $user = User::factory()->create([
+            'login' => 'testuser',
+            'password' => bcrypt('oldpassword'),
+        ]);
+
+        Sanctum::actingAs($user, [], 'sanctum');
+
+        $json = [
+            'password' => 'newvalidpassword',
+            'password_confirmation' => 'newvalidpassword'
+        ];
+
+        //act
+        $response = $this->patchJson('/api/users/' . $user->id . '/password', $json);
+
+        //assert
+        $response->assertStatus(OK)
+                 ->assertJson(['message' => 'Password updated successfully.']);
+
+        $this->assertTrue(\Hash::check('newvalidpassword', $user->fresh()->password));
+    }
+
+    public function test_user_cannot_update_other_user_password() : void
+    {
+        //prepare
+        $this->seed();
+
+        $user1 = User::factory()->create([
+            'login' => 'user1',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        $user2 = User::factory()->create([
+            'login' => 'user2',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        Sanctum::actingAs($user1, [], 'sanctum');
+
+        $json = [
+            'password' => 'newvalidpassword',
+            'password_confirmation' => 'newvalidpassword'
+        ];
+
+        //act
+        $response = $this->patchJson('/api/users/' . $user2->id . '/password', $json);
+
+        //assert
+        $response->assertStatus(FORBIDDEN)
+                 ->assertJson(['message' => 'You can only update your own password.']);
+    }
+
+    public function test_updating_password_requires_valid_password_length() : void
+    {
+        //prepare
+        $this->seed();
+
+        $user = User::factory()->create([
+            'login' => 'testuser',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        Sanctum::actingAs($user, [], 'sanctum');
+
+        $json = [
+            'password' => 'short',
+            'password_confirmation' => 'short'
+        ];
+
+        //act
+        $response = $this->patchJson('/api/users/' . $user->id . '/password', $json);
+
+        //assert
+        $response->assertStatus(INVALID_DATA)
+                 ->assertJsonValidationErrors(['password']);
+    }
+
+    public function test_updating_password_requires_valid_password_confirmation() : void
+    {
+        //prepare
+        $this->seed();
+
+        $user = User::factory()->create([
+            'login' => 'testuser',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        Sanctum::actingAs($user, [], 'sanctum');
+
+        $json = [
+            'password' => 'newvalidpassword',
+            'password_confirmation' => 'differentpassword'
+        ];
+
+        //act
+        $response = $this->patchJson('/api/users/' . $user->id . '/password', $json);
+
+        //assert
+        $response->assertStatus(INVALID_DATA)
+                 ->assertJsonValidationErrors(['password']);
+    }
+
+    public function test_unauthenticated_user_cannot_update_password() : void
+    {
+        //prepare
+        $this->seed();
+
+        $user = User::factory()->create([
+            'login' => 'testuser',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        $json = [
+            'password' => 'newvalidpassword',
+            'password_confirmation' => 'newvalidpassword'
+        ];
+
+        //act
+        $response = $this->patchJson('/api/users/' . $user->id . '/password', $json);
+
+        //assert
+        $response->assertStatus(UNAUTHORIZED);
+    }
+
+    public function test_updating_password_of_nonexistent_user_returns_not_found() : void
+    {
+        //prepare
+        $this->seed();
+
+        $user = User::factory()->create([
+            'login' => 'testuser',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        Sanctum::actingAs($user, [], 'sanctum');
+
+        $nonExistentUserId = 99999;
+
+        $json = [
+            'password' => 'newvalidpassword',
+            'password_confirmation' => 'newvalidpassword'
+        ];
+
+        //act
+        $response = $this->patchJson('/api/users/' . $nonExistentUserId . '/password', $json);
+
+        //assert
+        $response->assertStatus(NOT_FOUND)
+                 ->assertJson(['message' => 'User not found.']);
+    }
+
+    /////////////////////////////////////
+    //Fin Tests de updatePassword
+    ////////////////////////////////////
+
+    /////////////////////////////////////
+    //Début Tests de throttling sur les routes de UserController
+    ////////////////////////////////////
+
+    public function test_throttling_on_user_update_password_route() : void
+    {
+        //prepare
+        $this->seed();
+        $maxAttempts = 60;
+
+        $user = User::factory()->create([
+            'login' => 'testuser',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        Sanctum::actingAs($user, [], 'sanctum');
+
+        $json = [
+            'password' => 'newvalidpassword',
+            'password_confirmation' => 'newvalidpassword'
+        ];
+
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            $response = $this->patchJson('/api/users/' . $user->id . '/password', $json);
+            $response->assertStatus(OK);
+        }
+
+        //act
+        $response = $this->patchJson('/api/users/' . $user->id . '/password', $json);
+
+        //assert
+        $response->assertStatus(TOO_MANY_REQUESTS);
+    }
+
+    public function test_throttling_on_user_get_by_id_route() : void
+    {
+        //prepare
+        $this->seed();
+        $maxAttempts = 60;
+
+        $user = User::factory()->create([
+            'login' => 'testuser',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        Sanctum::actingAs($user, [], 'sanctum');
+
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            $response = $this->getJson('/api/users/' . $user->id);
+            $response->assertStatus(OK);
+        }
+
+        //act
+        $response = $this->getJson('/api/users/' . $user->id);
+
+        //assert
+        $response->assertStatus(TOO_MANY_REQUESTS);
+    }
+
+    public function test_throttling_on_user_get_by_id_route_without_exceeding_limit() : void
+    {
+        //prepare
+        $this->seed();
+        $maxAttempts = 60;
+
+        $user = User::factory()->create([
+            'login' => 'testuser',
+            'password' => bcrypt('validpassword'),
+        ]);
+
+        Sanctum::actingAs($user, [], 'sanctum');
+
+        for ($i = 0; $i < $maxAttempts - 1; $i++) {
+            $response = $this->getJson('/api/users/' . $user->id);
+            $response->assertStatus(OK);
+        }
+
+        //act
+        $response = $this->getJson('/api/users/' . $user->id);
+
+        //assert
+        $response->assertStatus(OK);
+    }
 }
