@@ -17,7 +17,7 @@ class CreateActorFilmTable extends Migration
             $table->primary(['actor_id', 'film_id']);
             $table->timestamps();
             $table->foreignId('actor_id')->constrained();
-            $table->foreignId('film_id')->constrained();            
+            $table->foreignId('film_id')->constrained()->cascadeOnDelete();
         });
     }
     /**

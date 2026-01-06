@@ -47,12 +47,12 @@ class FilmRepository extends BaseRepository implements FilmRepositoryInterface
         return $film;
     }
 
-    public function getByDuration($duration)
+    public function getByLength($length)
     {
-        $film = $this->model->where('duration', $duration)->first();
+        $film = $this->model->where('length', $length)->first();
 
         if (!$film) {
-            throw new ModelNotFoundException("Film with duration {$duration} not found.");
+            throw new ModelNotFoundException("Film with length {$length} not found.");
         }
 
         return $film;
@@ -90,5 +90,5 @@ class FilmRepository extends BaseRepository implements FilmRepositoryInterface
 
         return $film;
     }
-    
+
 }

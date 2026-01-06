@@ -65,8 +65,8 @@ define('SERVER_ERROR', 500);
 define('SEARCH_PAGINATION', 20);
 
 //Roles
-define('USER', 1);
-define('ADMIN', 2);
+define('USER', 2);
+define('ADMIN', 1);
 
 class Controller extends BaseController
 {
