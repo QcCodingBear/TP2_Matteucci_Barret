@@ -8,6 +8,8 @@ use App\Http\Resources\FilmResource;
 use App\Models\Film;
 use App\Repository\FilmRepositoryInterface;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreFilmRequest;
+use App\Http\Requests\UpdateFilmRequest;
 
 class FilmController extends Controller
 {
@@ -18,19 +20,10 @@ class FilmController extends Controller
         $this->filmRepository = $filmRepository;
     }
 
-    public function store(Request $request)
+    public function store(StoreFilmRequest $request)
     {
         try {
-            $validatedData = $request->validate([
-                'title' => 'required|string|max:255',
-                'release_year' => 'required|integer',
-                'length' => 'required|integer',
-                'description' => 'nullable|string',
-                'rating' => 'nullable|string|max:10',
-                'language_id' => 'required|integer|exists:languages,id',
-                'special_features' => 'required|string',
-                'image' => 'nullable|string|max:255',
-            ]);
+            $validatedData = $request->validated();
 
             $film = $this->filmRepository->create($validatedData);
 
@@ -52,7 +45,7 @@ class FilmController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateFilmRequest $request, $id)
     {
         try {
             $film = $this->filmRepository->getById($id);
@@ -62,16 +55,7 @@ class FilmController extends Controller
                 ], NOT_FOUND);
             }
 
-            $validatedData = $request->validate([
-                'title' => 'sometimes|required|string|max:255',
-                'release_year' => 'sometimes|required|integer',
-                'length' => 'sometimes|required|integer',
-                'description' => 'sometimes|nullable|string',
-                'rating' => 'sometimes|nullable|string|max:10',
-                'language_id' => 'sometimes|required|integer|exists:languages,id',
-                'special_features' => 'sometimes|nullable|string',
-                'image' => 'sometimes|nullable|string|max:255',
-            ]);
+            $validatedData = $request->validated();
 
             $film = $this->filmRepository->update($id, $validatedData);
 

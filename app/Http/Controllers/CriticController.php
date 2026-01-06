@@ -18,13 +18,6 @@ class CriticController extends Controller
          $this->criticRepository = $criticRepository;
     }
 
-    public function getById($id)
-    {
-        $critic = $this->criticRepository->getById($id);
-        return new CriticResource($critic);
-    }
-
-
     public function store (StoreCriticRequest $request)
     {
         try

@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\AuthenticationException;
 use App\Repository\UserRepositoryInterface;
+use App\Http\Requests\RegisterAuthRequest;
+use App\Http\Requests\LoginAuthRequest;
 
 class AuthController extends Controller
 {
@@ -67,30 +69,18 @@ class AuthController extends Controller
      *     )
      * )
      */
-    public function register(Request $request)
+    public function register(RegisterAuthRequest $request)
     {
         try
         {
             if (auth('sanctum')->user()?->tokens()->count() > 0)
                 return response()->json(['message' => 'User already logged in'], FORBIDDEN);
 
-            // Meme si pas demandé dans l'enoncé, il est préférable de rendre l'email unique comme pour le login.
-            $request->validate([
-                'login' => 'required|string|unique:users,login',
-                'password' => 'required|string|min:8',
-                'email' => 'required|string|email|unique:users,email',
-                'first_name' => 'required|string',
-                'last_name' => 'required|string'
-            ]);
+            $validatedData = $request->validated();
+            $validatedData['password'] = bcrypt($validatedData['password']);
+            $validatedData['role_id'] = USER; // Par défaut, le rôle 'User' a l'ID 2 (User)
 
-            $user = $this->userRepository->create([
-                'login' => $request->login,
-                'password' => bcrypt($request->password),
-                'email' => $request->email,
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'role_id' => USER // Par défaut, le rôle 'User' a l'ID 2 (User)
-            ]);
+            $user = $this->userRepository->create($validatedData);
 
             return response()->json([
                 'message' => 'User created successfully'
@@ -158,21 +148,16 @@ class AuthController extends Controller
      *     )
      * )
     */
-    public function login(Request $request)
+    public function login(LoginAuthRequest $request)
     {
         try
         {
-            $request->validate([
-                'login' => 'required|string',
-                'password' => 'required|string',
-            ]);
+            $validatedData = $request->validated();
 
-            $credentials = $request->only('login', 'password');
-
-            if (!auth()->attempt($credentials))
+            if (!auth()->attempt($validatedData))
                 return response()->json(['message' => 'Authentication failed'], UNAUTHORIZED);
 
-            if ($request->user()->tokens()->count() > 0)
+            if (auth()->user()->tokens()->count() > 0)
                  return response()->json(['message' => 'User already logged in'], FORBIDDEN);
 
             $token = $this->generateToken(auth()->user());
