@@ -11,6 +11,7 @@ use Illuminate\Auth\AuthenticationException;
 use App\Repository\UserRepositoryInterface;
 use App\Http\Requests\RegisterAuthRequest;
 use App\Http\Requests\LoginAuthRequest;
+use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
@@ -43,7 +44,17 @@ class AuthController extends Controller
      *         description="User created successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="User created successfully"),
-     *             @OA\Property(property="token_type", type="string", example="Bearer")
+     *            @OA\Property(
+     *                property="User",
+     *               type="object",
+     *               @OA\Property(property="id", type="integer", example=1),
+     *               @OA\Property(property="login", type="string", example="Johnsnow"),
+     *              @OA\Property(property="email", type="string", format="email", example="johnsnow@winterfell,com"),
+     *              @OA\Property(property="first_name", type="string", example="John"),
+     *              @OA\Property(property="last_name", type="string", example="Snow"),
+     *              @OA\Property(property="role_id", type="integer", example=2)
+     *        ),
+     *       @OA\Property(property="user_id", type="integer", example=1)
      *         )
      *     ),
      *     @OA\Response(
@@ -80,7 +91,9 @@ class AuthController extends Controller
             $user = $this->userRepository->create($validatedData);
 
             return response()->json([
-                'message' => 'User created successfully'
+                'message' => 'User created successfully',
+                'User' => new UserResource($user),
+                'user_id' => $user->id
             ], CREATED);
         }
         catch (ValidationException $e)
@@ -158,7 +171,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'access_token' => $token,
-                'token_type' => 'Bearer'], OK);
+                'token_type' => 'Bearer',], OK);
         }
         catch (ValidationException $e)
         {
