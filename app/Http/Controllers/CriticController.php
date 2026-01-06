@@ -27,10 +27,10 @@ class CriticController extends Controller
 
     public function store (StoreCriticRequest $request)
     {
-        try 
+        try
         {
             $validatedData = $request->validated();
-            
+
             $userId = auth()->user()->id;
             $filmId = $validatedData['film_id'];
 
@@ -47,10 +47,13 @@ class CriticController extends Controller
 
         $critic = $this ->criticRepository->create($criticData);
 
-        return response()->json(['data' => new CriticResource($critic)], CREATED);
+        return response()->json([
+            'data' => new CriticResource($critic),
+            'message' => 'Critic added successfully'],
+            CREATED);
         }
 
-        catch (Exception $e) 
+        catch (Exception $e)
         {
             return response()->json([
                 'message' => 'An error occurred while creating the critic.',
