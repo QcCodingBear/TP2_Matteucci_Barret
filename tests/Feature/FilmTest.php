@@ -448,4 +448,8 @@ class FilmTest extends TestCase
         //assert
         $response->assertStatus(CREATED);
     }
+
+    /////////////////////////////////////
+    //Fin Tests de throttling
+    ////////////////////////////////////
 }

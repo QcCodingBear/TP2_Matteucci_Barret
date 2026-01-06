@@ -703,4 +703,8 @@ class UserTest extends TestCase
         //assert
         $response->assertStatus(OK);
     }
+
+    /////////////////////////////////////
+    //Fin Tests de throttling sur les routes de UserController
+    ////////////////////////////////////
 }
