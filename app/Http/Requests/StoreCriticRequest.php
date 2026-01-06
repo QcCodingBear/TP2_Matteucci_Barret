@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Critic;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class StoreCriticRequest extends FormRequest
 {
@@ -11,7 +13,16 @@ class StoreCriticRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+            $userId = auth()->user()->id;
+
+            $existingCritic = Critic::where('user_id', $userId)
+                ->where('film_id', $this->input('film_id'))
+                ->exists();
+
+            if ($existingCritic) {
+                throw new AuthorizationException('User has already submitted a critic for this film.');
+            }
+            return true;
     }
 
     /**

@@ -24,16 +24,9 @@ class CriticController extends Controller
         {
             $validatedData = $request->validated();
 
-            $userId = auth()->user()->id;
-            $filmId = $validatedData['film_id'];
-
-            if ($this->criticRepository->userHasCriticForFilm($userId, $filmId)) {
-                return response()->json(['message' => 'User has already submitted a critic for this film.'], FORBIDDEN);
-            }
-
             $criticData = [
-            'user_id' => $userId,
-            'film_id' => $filmId,
+            'user_id' => auth()->user()->id,
+            'film_id' => $validatedData['film_id'],
             'score' => $validatedData['score'],
             'comment' => $validatedData['comment'],
         ];
