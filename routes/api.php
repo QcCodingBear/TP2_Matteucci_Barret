@@ -20,7 +20,7 @@ Route::middleware('throttle:5,1')->group(function () {
 });
 
 // J'applique ici le throttling à toutes les routes (60 tentatives par minute)
-Route::middleware('auth:sanctum', 'throttle:60,1')->group(function () {
+Route::middleware('throttle:60,1', 'auth:sanctum')->group(function () {
 
     Route::post('/signout', 'App\Http\Controllers\AuthController@logout');
 

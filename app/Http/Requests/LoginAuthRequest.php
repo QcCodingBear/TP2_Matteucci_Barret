@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class LoginAuthRequest extends FormRequest
 {
@@ -11,7 +12,12 @@ class LoginAuthRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        if (auth('sanctum')->user()?->tokens()->count() > 0)
+            throw new AuthorizationException('User already logged in.');
+
+        else
+            return true;
+
     }
 
     /**

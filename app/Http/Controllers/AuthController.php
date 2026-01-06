@@ -73,9 +73,6 @@ class AuthController extends Controller
     {
         try
         {
-            if (auth('sanctum')->user()?->tokens()->count() > 0)
-                return response()->json(['message' => 'User already logged in'], FORBIDDEN);
-
             $validatedData = $request->validated();
             $validatedData['password'] = bcrypt($validatedData['password']);
             $validatedData['role_id'] = USER; // Par défaut, le rôle 'User' a l'ID 2 (User)
@@ -156,9 +153,6 @@ class AuthController extends Controller
 
             if (!auth()->attempt($validatedData))
                 return response()->json(['message' => 'Authentication failed'], UNAUTHORIZED);
-
-            if (auth()->user()->tokens()->count() > 0)
-                 return response()->json(['message' => 'User already logged in'], FORBIDDEN);
 
             $token = $this->generateToken(auth()->user());
 

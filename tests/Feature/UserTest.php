@@ -137,7 +137,7 @@ class UserTest extends TestCase
 
         //assert
         $response->assertStatus(FORBIDDEN)
-                 ->assertJson(['message' => 'User already logged in']);
+                 ->assertJson(['message' => 'User already logged in.']);
     }
 
     /////////////////////////////////////
@@ -229,23 +229,23 @@ class UserTest extends TestCase
         $this->seed();
 
         $user = User::factory()->create([
-            'login' => 'testuser',
+            'login' => 'newuser',
             'password' => bcrypt('validpassword'),
         ]);
 
-        $user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('auth_token')->plainTextToken;
 
-        $json = [
-            'login' => 'testuser',
-            'password' => 'validpassword',
-        ];
+        $json = User::factory()->make()->toArray();
+        $json['password'] = 'validpassword';
 
         //act
-        $response = $this->postJson('/api/signin', $json);
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->postJson('/api/signin', $json);
 
         //assert
         $response->assertStatus(FORBIDDEN)
-                 ->assertJson(['message' => 'User already logged in']);
+                 ->assertJson(['message' => 'User already logged in.']);
     }
 
     /////////////////////////////////////
