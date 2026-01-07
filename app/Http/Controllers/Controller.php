@@ -13,42 +13,56 @@ use Illuminate\Routing\Controller as BaseController;
 // (Il m'a indiqué comment saisir Bearer + mon token dans le header Authorization).
 // Je n'ai trouvé cette information dans aucune doc!
 
-/** * @OA\Info(title="TP2 Web API", version="0.1") */
 /**
-     * @OA\Info(
-     *      version="1.0.0",
-     *      title="TP2 Web API",
-     *      description="Tp2 Web de la session 4",
-     *      @OA\Contact(
-     *          email="thierry.matteucci@gmail.com"
-     *      ),
-     *      @OA\License(
-     *          name="Apache 2.0",
-     *          url="http://www.apache.org/licenses/LICENSE-2.0.html"
-     *      )
-     * )
-     *
-     * @OA\Server(
-     *      url=L5_SWAGGER_CONST_HOST,
-     *      description="Films API Server"
-     * )
-
-     *
-     * @OA\Tag(
-     *     name="Projects",
-     *     description="API Endpoints of Projects"
-     * )
-     *
-     * @OA\SecurityScheme(
-     *     type="http",
-     *     securityScheme="bearerAuth",
-     *     description="Use a bearer token to access these endpoints",
-     *     name="Token",
-     *     in="header",
-     *     scheme="bearer",
-     *    bearerFormat="Token"
-     * )
-     */
+ * @OA\Info(
+ *      version="1.0.0",
+ *      title="TP2 Web API",
+ *      description="Tp2 Web de la session 4 (Partie 2)",
+ *      @OA\Contact(
+ *          email="thierry.matteucci@gmail.com",
+ *          email="barret.julien@gmail.com"
+ *      ),
+ *      @OA\License(
+ *          name="Apache 2.0",
+ *          url="http://www.apache.org/licenses/LICENSE-2.0.html"
+ *      )
+ * )
+ *
+ * @OA\Server(
+ *      url=L5_SWAGGER_CONST_HOST,
+ *      description="Films API Server"
+ * )
+ *
+ * @OA\Tag(
+ *     name="Authentication",
+ *     description="API Endpoints for Authentication"
+ * )
+ * 
+ * @OA\Tag(
+ *     name="Films",
+ *     description="API Endpoints for Films"
+ * )
+ * 
+ * @OA\Tag(
+ *     name="Critics",
+ *     description="API Endpoints for Critics"
+ * )
+ * 
+ * @OA\Tag(
+ *     name="Users",
+ *     description="API Endpoints for Users"
+ * )
+ *
+ * @OA\SecurityScheme(
+ *     type="http",
+ *     securityScheme="bearerAuth",
+ *     description="Use a bearer token to access these endpoints",
+ *     name="Token",
+ *     in="header",
+ *     scheme="bearer",
+ *     bearerFormat="Token"
+ * )
+ */
 
 //HTTP Codes (rajouter ceux qui manque)
 define('OK', 200);
