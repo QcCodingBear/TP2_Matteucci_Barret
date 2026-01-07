@@ -15,10 +15,4 @@ class LanguageController extends Controller
     {
         $this->languageRepository = $languageRepository;
     }
-
-    public function getByCode($code)
-    {
-        $language = $this->languageRepository->getByCode($code);
-        return new LanguageResource($language);
-    }
 }

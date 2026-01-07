@@ -14,10 +14,4 @@ class ActorController extends Controller
         $this->actorRepository = $actorRepository;
     }
 
-    public function getById($id)
-    {
-        $actor = $this->actorRepository->getById($id);
-        return response()->json($actor);
-    }
-
 }
